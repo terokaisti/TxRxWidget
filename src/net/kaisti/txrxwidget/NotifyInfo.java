@@ -19,19 +19,23 @@ public class NotifyInfo {
 	public TrafficChannel channel;
 	
 	private float difference;
-	private long previous = 0L;
+	private long previous;
 
 	private static final String DECIMAL_FORMAT = "#.##";
 	private static final int ARROW_UP = R.drawable.arrow_up;
 	private static final int ARROW_DOWN = R.drawable.arrow_down;
 
-	public NotifyInfo(NotifyInfo previous) {
-		if(previous == null) {
-			previous = new NotifyInfo();
+	public NotifyInfo(NotifyInfo previousInfo, TrafficType type, TrafficChannel channel) {
+		if(previousInfo == null) {
+			previousInfo = new NotifyInfo();
 		}
-		this.previousInfo = previous;
-		setType(previous.type);
-		setChannel(previous.channel);
+
+		this.previousInfo = previousInfo;
+
+		setChannel(channel);
+		setType(type);
+
+		calcDifference();
 	}
 	/*
 	 * Start with TX
@@ -60,7 +64,7 @@ public class NotifyInfo {
     	if(previousInfo == null)
 	    	return (float) 0;
     	
-    	long now = previousInfo.previous > 0L ? current - previousInfo.previous : 0L;
+    	long now = previousInfo.previous > 0 ? current - previousInfo.previous : 0;
     	previous = current;
     	return new Long(now).floatValue();
     }
@@ -79,7 +83,6 @@ public class NotifyInfo {
     }
     
     public String getText(long delay) {
-    	calcDifference();
     	DecimalFormat df = new DecimalFormat(DECIMAL_FORMAT);
     	
     	// the last /2 comes from TX/RX
@@ -87,4 +90,7 @@ public class NotifyInfo {
 		return txt;
     }
 
+    public boolean hasChanged() {
+    	return difference > 0;
+    }
 }

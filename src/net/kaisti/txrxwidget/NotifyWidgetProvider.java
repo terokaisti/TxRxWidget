@@ -1,5 +1,7 @@
 package net.kaisti.txrxwidget;
 
+import java.util.HashMap;
+
 import net.kaisti.txrxwidget.NotifyInfo.TrafficType;
 import net.kaisti.txrxwidget.NotifyInfo.TrafficChannel;
 
@@ -15,6 +17,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 public class NotifyWidgetProvider extends AppWidgetProvider {
 	@Override
@@ -57,7 +60,9 @@ public class NotifyWidgetProvider extends AppWidgetProvider {
 	}
 
 	public static class NotifyWidgetService extends Service{
-		protected static final long DELAY = 2000; // notification updates every two seconds
+		protected static final long DELAY = 3000; // notification updates every two seconds
+	    private static int TXRX_ON = R.drawable.txrx_on;  // widget button on
+	    private static int TXRX_OFF = R.drawable.txrx_off; // widget button off
 		private NotificationManager manager = null;
 		
 		@Override
@@ -70,97 +75,80 @@ public class NotifyWidgetProvider extends AppWidgetProvider {
 			super.onCreate();
 		}
 
-		
 		@Override
 		public void onStart(Intent intent, int startId) {
 			super.onStart(intent, startId);
-			manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+			manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		}
-		
+
 		@Override
 		public void onDestroy() {
 			super.onDestroy();
-		}
-
-		public int onStartCommand(Intent intent, int flags, int startId) {
-			toggleState();			
-			return super.onStartCommand(intent, flags, startId);
+			toggleState(false);
 		}
 
 		private boolean isActive = false;
-		private boolean isRx = false;
-		private NotifyInfo previousInfoRx;
-		private NotifyInfo previousInfoTx;
-		
-		private NotifyInfo getNotificationInfo() {
-			NotifyInfo nInfo;
-			if(isRx == true) {
-				nInfo = new NotifyInfo(previousInfoRx);
-				nInfo.setType(TrafficType.RX);
-				previousInfoRx = nInfo;
-			}
-			else {
-				nInfo = new NotifyInfo(previousInfoTx);
-				nInfo.setType(TrafficType.TX);
-				previousInfoTx = nInfo;
-			}
-			isRx = !isRx;
-			
-			return nInfo;
+		public int onStartCommand(Intent intent, int flags, int startId) {
+			isActive = !isActive; // change between on and off states
+			toggleState(isActive);
+			return super.onStartCommand(intent, flags, startId);
 		}
 
-		private void notifyStatus() {
-			long when = System.currentTimeMillis();
-			    
-			NotifyInfo nInfo = getNotificationInfo();
-			TrafficChannel ch = TrafficChannel.TOTAL;  
-			nInfo.setChannel(ch);
-					
-			CharSequence text = nInfo.getText(DELAY);
-			CharSequence contentText = text;
-			int icon = nInfo.getIcon();
-			CharSequence contentTitle = "TxRx Widget running...";
+		private HashMap<TrafficType, NotifyInfo> previousInfo = new HashMap<TrafficType, NotifyInfo>();
+		private TrafficType currentType = TrafficType.RX;
+		
+		private NotifyInfo getNotificationInfo() {
+			currentType = (currentType == TrafficType.RX ? TrafficType.TX : TrafficType.RX);
+			NotifyInfo info = new NotifyInfo(previousInfo.get(currentType), currentType, TrafficChannel.TOTAL);
+			previousInfo.put(currentType, info);
+			return info;
 			
-			Intent intent = new Intent();
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+		}
 
-			Notification notification = new Notification(icon, text, when);
+		private CharSequence previousNotifyText;
+		private void notifyStatus(NotifyInfo info) {
+			CharSequence text = info.getText(DELAY);
+			
+			// skip unchanged notifies
+			if(previousNotifyText != null && previousNotifyText.equals(text)) {
+				manager.cancel(Constants.NOTIFICATION_ID);
+			}
+			else {	
+				PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
+				Notification notification = new Notification(info.getIcon(), text, System.currentTimeMillis());
+				notification.setLatestEventInfo(this, "TxRx Widget running...", text, contentIntent);
 
-			notification.setLatestEventInfo(this, contentTitle, contentText, contentIntent);
-			manager.notify(Constants.NOTIFICATION_ID, notification);
+				manager.notify(Constants.NOTIFICATION_ID, notification);
+			}
+			previousNotifyText = text;
 		}
 
 		private Handler handler = new Handler();
 	    private Runnable runnable = new Runnable() {
 	    	public void run() {
-	    		notifyStatus();
+	    		notifyStatus( getNotificationInfo() );
 		    	handler.postDelayed(this, DELAY);
 	    	}
 	    };
-
-	    private void toggleState() {
-			isActive = !isActive;
-			
+	    
+	    private void toggleState(boolean state) {
 			handler.removeCallbacks(runnable);
-			int txrx = R.drawable.txrx_off;
-
-			if(isActive == true) {
-		        handler.postDelayed(runnable, DELAY);
-		        txrx = R.drawable.txrx_on;
-			}
-			else {
-		        manager.cancel(Constants.NOTIFICATION_ID);
-		        /*
-		        previousInfoRx = null;
-		        previousInfoTx = null;
-		        */
-			}
 
 			RemoteViews views = new RemoteViews(getPackageName(), R.layout.notifywidget);
-			views.setInt(R.id.txrx, "setImageResource", txrx);
+			if(state == true) {
+				views.setInt(R.id.txrx, "setImageResource", TXRX_ON);
+		        handler.postDelayed(runnable, DELAY);
+		        // Tell the user we stopped.
+		        Toast.makeText(this, "TxRx Started", Toast.LENGTH_SHORT).show();	
+			}
+			else {
+				views.setInt(R.id.txrx, "setImageResource", TXRX_OFF);
+		        manager.cancel(Constants.NOTIFICATION_ID);
+		        Toast.makeText(this, "TxRx Stopped", Toast.LENGTH_SHORT).show();		
+			}
+
 			ComponentName thisWidget = new ComponentName(this, NotifyWidgetProvider.class);
-            AppWidgetManager manager = AppWidgetManager.getInstance(this);
-            manager.updateAppWidget(thisWidget, views);
+            AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
 
 		}
 	}
