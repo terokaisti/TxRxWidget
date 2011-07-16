@@ -116,7 +116,7 @@ public class NotifyWidgetProvider extends AppWidgetProvider {
 			else {	
 				PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
 				Notification notification = new Notification(info.getIcon(), text, System.currentTimeMillis());
-				notification.setLatestEventInfo(this, "TxRx Widget running...", text, contentIntent);
+				notification.setLatestEventInfo(this, getText(R.string.txrx_notifytext), text, contentIntent);
 
 				manager.notify(Constants.NOTIFICATION_ID, notification);
 			}
@@ -139,12 +139,12 @@ public class NotifyWidgetProvider extends AppWidgetProvider {
 				views.setInt(R.id.txrx, "setImageResource", TXRX_ON);
 		        handler.postDelayed(runnable, DELAY);
 		        // Tell the user we stopped.
-		        Toast.makeText(this, "TxRx Started", Toast.LENGTH_SHORT).show();	
+		        Toast.makeText(this, getText(R.string.txrx_started), Toast.LENGTH_SHORT).show();	
 			}
 			else {
 				views.setInt(R.id.txrx, "setImageResource", TXRX_OFF);
 		        manager.cancel(Constants.NOTIFICATION_ID);
-		        Toast.makeText(this, "TxRx Stopped", Toast.LENGTH_SHORT).show();		
+		        Toast.makeText(this, getText(R.string.txrx_stopped), Toast.LENGTH_SHORT).show();		
 			}
 
 			ComponentName thisWidget = new ComponentName(this, NotifyWidgetProvider.class);
