@@ -20,11 +20,16 @@ import android.widget.RemoteViews;
 import android.widget.Toast;
 
 public class NotifyWidgetProvider extends AppWidgetProvider {
+	/**
+	 * Stop the reporting service when the widget is mr
+	 */
 	@Override
 	public void onDeleted(Context context, int[] appWidgetIds) {
+		Intent serviceIntent = new Intent(context, NotifyWidgetService.class);
+		context.stopService(serviceIntent);
 		super.onDeleted(context, appWidgetIds);
 	}
-
+	
 	@Override
 	public void onDisabled(Context context) {
 		super.onDisabled(context);
