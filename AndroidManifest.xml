@@ -28,8 +28,10 @@
 				android:name="android.appwidget.provider"
 				android:resource="@xml/notifywidgetinfo" />
 		</receiver>
+ 		<service android:name=".NotifyWidgetProvider$NotifyWidgetService"></service>
 		
-		<service android:name=".NotifyWidgetProvider$NotifyWidgetService"></service>
+<!-- 		<service android:name=".NotifyWidgetProvider$NotifyWidgetService"></service> -->
+ 		<activity></activity>
 	</application>
 	<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="10" /> 
 	
