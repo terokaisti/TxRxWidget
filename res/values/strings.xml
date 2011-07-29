@@ -6,6 +6,6 @@
 
 	<string name="txrx_started">TxRx Started</string>
 	<string name="txrx_stopped">TxRx Stopped</string>
-	<string name="txrx_notifytext">TxRx Widget running...</string>
+	<string name="txrx_notifytext">TxRx Widget running.. Click to terminate.</string>
 
 </resources>

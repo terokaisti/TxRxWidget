@@ -11,7 +11,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -76,7 +75,8 @@ public class NotifyWidgetService extends Service{
 			manager.cancel(Constants.NOTIFICATION_ID);
 		}
 		else {	
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
+			Intent intent = new Intent(this, TurnOffActivity.class);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
 			Notification notification = new Notification(info.getIcon(), text, System.currentTimeMillis());
 			notification.setLatestEventInfo(this, getText(R.string.txrx_notifytext), text, contentIntent);
 
