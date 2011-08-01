@@ -75,11 +75,11 @@ public class NotifyWidgetService extends Service{
 			manager.cancel(Constants.NOTIFICATION_ID);
 		}
 		else {	
-			Intent intent = new Intent(this, TurnOffActivity.class);
-			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
 			Notification notification = new Notification(info.getIcon(), text, System.currentTimeMillis());
 			notification.setLatestEventInfo(this, getText(R.string.txrx_notifytext), text, contentIntent);
-
+			notification.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
+			
 			manager.notify(Constants.NOTIFICATION_ID, notification);
 		}
 		previousNotifyText = text;
