@@ -21,7 +21,7 @@ public class NotifyInfo {
 	private float difference;
 	private long previous;
 
-	private static final String DECIMAL_FORMAT = "#.##";
+	public static final String DECIMAL_FORMAT = "#.##";
 	private static final int ARROW_UP = R.drawable.arrow_up;
 	private static final int ARROW_DOWN = R.drawable.arrow_down;
 
@@ -81,12 +81,15 @@ public class NotifyInfo {
 		}
 		difference = getDifference(bytes);
     }
-    
+    /**
+     * 
+     * @param delay Delay between requests
+     * @return
+     */
     public String getText(long delay) {
     	DecimalFormat df = new DecimalFormat(DECIMAL_FORMAT);
     	
-    	// the last /2 comes from TX/RX
-		String txt = String.format("%s", df.format(difference/delay/2)+"kB/s");
+		String txt = String.format("%s", df.format(difference/delay/TrafficType.values().length)+"kB/s");
 		return txt;
     }
 
