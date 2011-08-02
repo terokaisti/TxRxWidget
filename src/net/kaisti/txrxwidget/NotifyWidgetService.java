@@ -1,6 +1,6 @@
 package net.kaisti.txrxwidget;
 
-
+import java.text.DecimalFormat;
 import java.util.HashMap;
 
 import net.kaisti.txrxwidget.NotifyInfo.TrafficType;
@@ -14,11 +14,11 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.TrafficStats;
 import android.os.Handler;
 import android.os.IBinder;
 import android.widget.RemoteViews;
 import android.widget.Toast;
-
 
 public class NotifyWidgetService extends Service{
 	protected static final long DELAY = 3000; // notification updates every two seconds
@@ -93,6 +93,9 @@ public class NotifyWidgetService extends Service{
     	}
     };
     
+    private long startTx;
+    private long startRx;
+    
     private void toggleState(boolean state) {
 		handler.removeCallbacks(runnable);
 
@@ -102,15 +105,28 @@ public class NotifyWidgetService extends Service{
 	        handler.postDelayed(runnable, DELAY);
 	        // Tell the user we stopped.
 	        Toast.makeText(this, getText(R.string.txrx_started), Toast.LENGTH_SHORT).show();	
+	        
+	        startTx = TrafficStats.getTotalTxBytes();
+	        startRx = TrafficStats.getTotalRxBytes();
 		}
 		else {
 			views.setInt(R.id.txrx, "setImageResource", TXRX_OFF);
 	        manager.cancel(Constants.NOTIFICATION_ID);
-	        Toast.makeText(this, getText(R.string.txrx_stopped), Toast.LENGTH_SHORT).show();		
+	        
+	        long currentTx = TrafficStats.getTotalTxBytes()-startTx;
+	        long currentRx = TrafficStats.getTotalRxBytes()-startRx;
+	        
+	        String txt = getText(R.string.txrx_stopped)+".\n\nTotal transmitted:\nTX:"+formatBytes(currentTx)+"\nRX: "+formatBytes(currentRx);    	
+	        
+	        Toast.makeText(this, txt, Toast.LENGTH_LONG).show();		
 		}
 
 		ComponentName thisWidget = new ComponentName(this, NotifyWidgetProvider.class);
         AppWidgetManager.getInstance(this).updateAppWidget(thisWidget, views);
 
+	}
+    private String formatBytes(long bytes) {
+	    DecimalFormat df = new DecimalFormat(NotifyInfo.DECIMAL_FORMAT);
+		return String.format("%s", df.format(bytes/1000)+"kB");
 	}
 }

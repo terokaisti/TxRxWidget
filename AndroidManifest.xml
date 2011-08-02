@@ -33,7 +33,6 @@
 		</receiver>
  		<service android:name=".NotifyWidgetService"></service>
 		
-<!-- 		<service android:name=".NotifyWidgetProvider$NotifyWidgetService"></service> -->
 	</application>
 	<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="10" /> 
 	
